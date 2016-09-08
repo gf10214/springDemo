@@ -31,6 +31,21 @@
     <servlet-name>springServlet</servlet-name>
     <url-pattern>/</url-pattern>
   </servlet-mapping>
+  <!--druid链接池监控-->
+  <servlet>
+    <servlet-name>DruidStatView</servlet-name>
+    <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+    <init-param>
+      <param-name>allow</param-name>
+      <param-value>127.0.0.1</param-value>
+    </init-param>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DruidStatView</servlet-name>
+    <url-pattern>/druid/*</url-pattern>
+  </servlet-mapping>
+
   <!--字符过滤器-->
   <filter>
     <filter-name>CharacterEncodingFilter</filter-name>

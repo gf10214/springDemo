@@ -24,12 +24,10 @@
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n%ex</pattern>
         </layout>
-
     </appender>
-
     <root level="error">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
-
+    <logger name="com.wangshuo.springDemo" level="DEBUG"/>
 </configuration>

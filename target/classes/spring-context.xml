@@ -1,6 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+    <!-- 使用Annotation自动注册Bean，解决事物失效问题：在主容器中不扫描@Controller注解，在SpringMvc中只扫描@Controller注解。 -->
+    <context:component-scan base-package="com.wangshuo.springDemo"><!-- base-package
+                如果多个，用“,”分隔 -->
+        <context:exclude-filter type="annotation"
+                                expression="org.springframework.stereotype.Controller" />
+    </context:component-scan>
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="initialSize" value="${jdbc.pool.init}"/>
+        <property name="minIdle" value="${jdbc.pool.minIdle}"/>
+        <property name="maxActive" value="${jdbc.pool.maxActive}"/>
+        <property name="maxWait" value="300000" />
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <property name="validationQuery" value="${jdbc.testSql}"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="filters" value="stat"/>
+    </bean>
+    <!--myBatis Begin-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="typeAliasesPackage" value="com.wangshuo.springDemo" />
+        <!--<property name="typeAliasesSuperType"-->
+                  <!--value="com.wonders.healthcloud.common.persistence.BaseEntity" />-->
+        <property name="configLocation" value="classpath:/mybaits-config.xml" />
+        <property name="mapperLocations" value="classpath:/mappings/*.xml" />
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wangshuo.springDemo.dao" />
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    </bean>
+
+    <!--定义事务-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!--普通定义事务-->
+    <!--<tx:advice id="transactionAdvice" transaction-manager="transactionManager">-->
+        <!--<tx:attributes>-->
+            <!--<tx:method name="add*" propagation="REQUIRED" />-->
+            <!--<tx:method name="append*" propagation="REQUIRED" />-->
+            <!--<tx:method name="insert*" propagation="REQUIRED" />-->
+            <!--<tx:method name="save*" propagation="REQUIRED" />-->
+            <!--<tx:method name="update*" propagation="REQUIRED" />-->
+            <!--<tx:method name="modify*" propagation="REQUIRED" />-->
+            <!--<tx:method name="edit*" propagation="REQUIRED" />-->
+            <!--<tx:method name="delete*" propagation="REQUIRED" />-->
+            <!--<tx:method name="remove*" propagation="REQUIRED" />-->
+            <!--<tx:method name="repair" propagation="REQUIRED" />-->
+            <!--<tx:method name="delAndRepair" propagation="REQUIRED" />-->
+            <!--<tx:method name="get*" propagation="SUPPORTS" />-->
+            <!--<tx:method name="find*" propagation="SUPPORTS" />-->
+            <!--<tx:method name="load*" propagation="SUPPORTS" />-->
+            <!--<tx:method name="search*" propagation="SUPPORTS" />-->
+            <!--<tx:method name="datagrid*" propagation="SUPPORTS" />-->
+            <!--<tx:method name="*" propagation="SUPPORTS" />-->
+        <!--</tx:attributes>-->
+    <!--</tx:advice>-->
+    <!--&lt;!&ndash; 定义AOP配置 &ndash;&gt;-->
+    <!--<aop:config>-->
+        <!--&lt;!&ndash; 定义一个切入点 &ndash;&gt;-->
+        <!--<aop:pointcut expression="execution (* com.test.services.impl.*.*(..))" id="services"/>-->
+        <!--&lt;!&ndash; 对切入点和事务的通知，进行适配 &ndash;&gt;-->
+        <!--<aop:advisor advice-ref="transactionAdvice" pointcut-ref="services"/>-->
+    <!--</aop:config>-->
+    <!--以注解的方式扫描@Transactional注解定义事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"
+                          proxy-target-class="true" />
+    <!-- MyBatis end -->
+    <!--根据不同环境的独特配置-->
+    <beans profile="de"><!-- 开发环境 -->
+        <context:property-placeholder
+                ignore-unresolvable="true" location="classpath*:/env/config-de.properties" />
+    </beans>
 
 </beans>
